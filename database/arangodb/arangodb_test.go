@@ -3,7 +3,6 @@ package arangodb
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"testing"
 
@@ -51,12 +50,8 @@ func isReady(ctx context.Context, c dktest.ContainerInfo) bool {
 
 	_, err = client.DatabaseExists(ctx, "_system") //as PING
 	if err != nil {
-		switch err {
-		case io.EOF:
-			return false
-		default:
-			log.Println(err)
-		}
+		log.Println(err)
+		return false
 	}
 
 	return true
