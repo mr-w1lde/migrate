@@ -96,7 +96,7 @@ func (a *ArangoDB) Open(dsn string) (database.Driver, error) {
 
 	client, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
-		Authentication: driver.JWTAuthentication(username, password),
+		Authentication: driver.BasicAuthentication(username, password),
 	})
 
 	if err != nil {

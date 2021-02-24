@@ -3,6 +3,7 @@ package arangodb
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"testing"
 
@@ -39,7 +40,7 @@ func isReady(ctx context.Context, c dktest.ContainerInfo) bool {
 		return false
 	}
 
-	_, err = driver.NewClient(driver.ClientConfig{
+	client, err := driver.NewClient(driver.ClientConfig{
 		Connection:     conn,
 		Authentication: driver.BasicAuthentication("root", "root"),
 	})
@@ -48,17 +49,27 @@ func isReady(ctx context.Context, c dktest.ContainerInfo) bool {
 		return false
 	}
 
+	_, err = client.DatabaseExists(ctx, "_system") //as PING
+	if err != nil {
+		switch err {
+		case io.EOF:
+			return false
+		default:
+			log.Println(err)
+		}
+	}
+
 	return true
 }
 
 func Test(t *testing.T) {
 	dktesting.ParallelTest(t, specs, func(t *testing.T, c dktest.ContainerInfo) {
-		_, port, err := c.FirstPort()
+		ip, port, err := c.FirstPort()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		addr := arangodbConnectionString("dev-env", port, "http")
+		addr := arangodbConnectionString(ip, port, "http")
 		p := &ArangoDB{}
 		d, err := p.Open(addr)
 		if err != nil {
